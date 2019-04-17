@@ -1,10 +1,10 @@
 # Check SNMP Synology
 Nagios/Icinga script to check Synology via SNMP
 
-It's based on verion 2.5 check_snmp_synology for nagios by Nicolas Ordonez
+It's based on version 2.5 check_snmp_synology for nagios by Nicolas Ordonez
 https://exchange.nagios.org/directory/Plugins/Network-and-Systems-Management/Others/Synology-status/details
 
-Due to timeouts and noe of the solutions proposed in the comments of the initial script I rewrote the first SNMPWalk to a somehing similar to that used by version 1.1 of the same script.
+Due to timeouts and none of the solutions proposed in the comments of the initial script I rewrote the first SNMPWalk to a something similar to that used by version 1.1 of the same script.
 
 # Usage
 
