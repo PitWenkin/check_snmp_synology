@@ -5,6 +5,7 @@ It's based on version 2.5 check_snmp_synology for nagios by Nicolas Ordonez
 https://exchange.nagios.org/directory/Plugins/Network-and-Systems-Management/Others/Synology-status/details
 
 Due to timeouts and none of the solutions proposed in the comments of the initial script I rewrote the first SNMPWalk to a something similar to that used by version 1.1 of the same script.
+Added checks to USB-storage mounting an disk-usage
 
 # Usage
 
@@ -24,6 +25,8 @@ Due to timeouts and none of the solutions proposed in the comments of the initia
 
   -w [warning %] Warning storage usage percentage (default 80) 
   -c [critical %] Critical storage usage percentage (default 95) 
+
+  -b Check USB-storage
 
   -i Ignore DSM updates 
   -U Show informations about the connected UPS (only information, no control) 
