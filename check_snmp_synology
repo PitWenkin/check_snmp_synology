@@ -119,7 +119,7 @@ usage()
 	echo "            -w [warning %]		Warning storage usage percentage (default $warningStorage)"
 	echo "            -c [critical %]		Critical storage usage percentage (default $criticalStorage)"
 	echo ""
-	echo "            -b   			Check USB-storage"
+	echo "            -b [number of USB slot]  	Check USB-storage"
 	echo ""
 	echo "            -i   			Ignore DSM updates"
 	echo "            -U   			Show informations about the connected UPS (only information, no control)"
