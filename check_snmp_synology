@@ -19,7 +19,7 @@
 # - UPS information
 # - Storage percentage of use
 #
-# Tested with DSM 5.0, 5.1 & 6.0, 6.2
+# Tested with DSM 5.0, 5.1 & 6.0, 6.2, 7.1, 7.2
 #---------------------------------------------------
 # Based on http://ukdl.synology.com/download/Document/MIBGuide/Synology_DiskStation_MIB_Guide.pdf 
 #---------------------------------------------------
@@ -124,26 +124,26 @@ usage()
 }
 
 if [ "$1" == "--help" ]; then
-    usage; exit 0
+	usage; exit 0
 fi
 
 while getopts 2:W:C:w:c:u:p:h:b:iUv OPTNAME; do
-        case "$OPTNAME" in
-	u)	SNMPUser="$OPTARG";;
-        p)	SNMPPassword="$OPTARG";;
-        h)	hostname="$OPTARG";;
-        v)	verbose="yes";;
-	2)	SNMPVersion="2"
-		SNMPV2Community="$OPTARG";;
-	w)	warningStorage="$OPTARG";;
-        c)      criticalStorage="$OPTARG";;
-	W)	warningTemperature="$OPTARG";;
-	C)	criticalTemperature="$OPTARG";;
-	b)	usb="$OPTARG";;
-	i)	checkDSMUpdate="no";;
-	U)	ups="yes";;
-        *)	usage;;
-        esac
+	case "$OPTNAME" in
+		u)	SNMPUser="$OPTARG";;
+		p)	SNMPPassword="$OPTARG";;
+		h)	hostname="$OPTARG";;
+		v)	verbose="yes";;
+		2)	SNMPVersion="2"
+			SNMPV2Community="$OPTARG";;
+		w)	warningStorage="$OPTARG";;
+		c)	criticalStorage="$OPTARG";;
+		W)	warningTemperature="$OPTARG";;
+		C)	criticalTemperature="$OPTARG";;
+		b)	usb="$OPTARG";;
+		i)	checkDSMUpdate="no";;
+		U)	ups="yes";;
+		*)	usage;;
+	esac
 done
 
 if [ "$warningTemperature" -gt "$criticalTemperature" ] ; then
@@ -192,16 +192,15 @@ else
 			exit 1
 		fi
 	fi
-	#tmpRequest=`$SNMPWALK $SNMPArgs $hostname $OID_syno 2> /dev/null`
+
 	nbDisk=`$SNMPWALK $SNMPArgs $hostname $OID_diskID 2> /dev/null | wc -l `
 	if [ "$?" != "0" ] ; then
 		echo "CRITICAL - Problem with SNMP request, check user/password/host"
 		exit 2
-	fi 
-	#nbRAID=$(echo "$tmpRequest" | grep $OID_RAIDName | wc -l)
-	#nbDisk=$(echo "$tmpRequest" | grep $OID_diskID | wc -l)
+	fi
+
 	nbRAID=`$SNMPWALK $SNMPArgs $hostname $OID_RAIDName 2> /dev/null | wc -l `
-	
+
 	for i in `seq 1 $nbDisk`;
 	do
 		if [ $i -lt 25 ] ; then
@@ -210,12 +209,12 @@ else
 			OID_disk2="$OID_disk2 $OID_diskID.$(($i-1)) $OID_diskModel.$(($i-1)) $OID_diskStatus.$(($i-1)) $OID_diskTemp.$(($i-1)) "
 		fi   
 	done
-	
+
 	for i in `seq 1 $nbRAID`;
 	do
 		OID_RAID="$OID_RAID $OID_RAIDName.$(($i-1)) $OID_RAIDStatus.$(($i-1))" 
 	done
-	
+
 	if [[ "$usb" =~ "1" ]]; then
 		OID_Usb="$OID_Usb1 $OID_Usb1Mount $OID_Usb1Size $OID_Usb1Usage"
 	fi
@@ -228,7 +227,7 @@ else
 	else
 		syno=`$SNMPGET $SNMPArgs $hostname $OID_model $OID_serialNumber $OID_DSMVersion $OID_systemStatus $OID_temperature $OID_powerStatus $OID_systemFanStatus $OID_CPUFanStatus $OID_disk $OID_RAID $OID_DSMUpgradeAvailable $OID_Usb 2> /dev/null`
 	fi
-	
+
 	if [ "$OID_disk2" != "" ]; then
 		syno2=`$SNMPGET $SNMPArgs $hostname $OID_disk2 2> /dev/null`
 		syno=$(echo "$syno";echo "$syno2";)
@@ -237,9 +236,9 @@ else
 	model=$(echo "$syno" | grep $OID_model | cut -d "=" -f2)
 	serialNumber=$(echo "$syno" | grep $OID_serialNumber | cut -d "=" -f2)
 	DSMVersion=$(echo "$syno" | grep $OID_DSMVersion | cut -d "=" -f2)
-	
+
 	healthString="Synology $model (s/n:$serialNumber, $DSMVersion)"
-	
+
 	DSMUpgradeAvailable=$(echo "$syno" | grep $OID_DSMUpgradeAvailable | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 	case $DSMUpgradeAvailable in
 		"1")	DSMUpgradeAvailable="Available";	if [ "$checkDSMUpdate" = "yes" ]; then healthWarningStatus=1;		healthString="$healthString, DSM update available"; fi ;;
@@ -248,7 +247,7 @@ else
 		"4")	DSMUpgradeAvailable="Disconnected";	if [ "$checkDSMUpdate" = "yes" ]; then healthWarningStatus=1;		healthString="$healthString, DSM Update Disconnected"; fi ;;
 		"5")	DSMUpgradeAvailable="Others";		if [ "$checkDSMUpdate" = "yes" ]; then healthWarningStatus=1;		healthString="$healthString, Check DSM Update"; fi ;;
 	esac
-	
+
 	RAIDName=$(echo "$syno" | grep $OID_RAIDName | cut -d "=" -f2)
 	RAIDStatus=$(echo "$syno" | grep $OID_RAIDStatus | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 	systemStatus=$(echo "$syno" | grep $OID_systemStatus | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
@@ -256,7 +255,6 @@ else
 	powerStatus=$(echo "$syno" | grep $OID_powerStatus | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 	systemFanStatus=$(echo "$syno" | grep $OID_systemFanStatus | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 	CPUFanStatus=$(echo "$syno" | grep $OID_CPUFanStatus | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
-
 
 	#Check system status
 	if [ "$systemStatus" = "1" ] ; then
@@ -266,7 +264,7 @@ else
 		healthCriticalStatus=1
 		healthString="$healthString, System status: $systemStatus "
 	fi
-	
+
 	#Check system temperature
 	if [ "$temperature" -gt "$warningTemperature" ] ; then
 		if [ "$temperature" -gt "$criticalTemperature" ] ; then
@@ -282,7 +280,6 @@ else
 		temperature="$temperature (Normal)"
 	fi
 
-
 	#Check power status
 	if [ "$powerStatus" = "1" ] ; then
 		powerStatus="Normal"
@@ -291,8 +288,7 @@ else
 		healthCriticalStatus=1
 		healthString="$healthString, Power status: $powerStatus "
 	fi
-	
-	
+
 	#Check system fan status
 	if [ "$systemFanStatus" = "1" ] ; then
 		systemFanStatus="Normal"
@@ -301,7 +297,6 @@ else
 		healthCriticalStatus=1
 		healthString="$healthString, System fan status: $systemFanStatus "
 	fi
-    
 
 	#Check CPU fan status
 	if [ "$CPUFanStatus" = "1" ] ; then
@@ -325,8 +320,7 @@ else
 				USBUsage=$(echo "$syno" | grep $OID_Usb1Usage | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 				USBStatus="$USBMount $USBUsage/$USBSize"
 				healthString="$healthString, USB status: $USBStatus "
-					checkDiskSpace $USBSize $USBUsage
-					
+				checkDiskSpace $USBSize $USBUsage
 			fi
 		fi
 		if [[ "$usb" =~ "2" ]]; then
@@ -340,11 +334,10 @@ else
 				USBUsage=$(echo "$syno" | grep $OID_Usb2Usage | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 				USBStatus="$USBMount $USBUsage/$USBSize"
 				healthString="$healthString, USB status: $USBStatus "
-					checkDiskSpace $USBSize $USBUsage
+				checkDiskSpace $USBSize $USBUsage
 			fi
 		fi
 	fi
-	 
 
 	#Check all disk status
 	for i in `seq 1 $nbDisk`;
@@ -353,7 +346,7 @@ else
 		diskModel[$i]=$(echo "$syno" | grep "$OID_diskModel.$(($i-1)) " | cut -d "=" -f2 )
 		diskStatus[$i]=$(echo "$syno" | grep "$OID_diskStatus.$(($i-1)) " | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 		diskTemp[$i]=$(echo "$syno" | grep "$OID_diskTemp.$(($i-1)) " | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
-	
+
 		case ${diskStatus[$i]} in
 			"1")	diskStatus[$i]="Normal";		;;
 			"2")	diskStatus[$i]="Initialized";		;;
@@ -361,7 +354,7 @@ else
 			"4")	diskStatus[$i]="SystemPartitionFailed";	healthCriticalStatus=1; healthString="$healthString, problem with ${diskID[$i]} (model:${diskModel[$i]}) status:${diskStatus[$i]} temperature:${diskTemp[$i]}";;
 			"5")	diskStatus[$i]="Crashed";		healthCriticalStatus=1;	healthString="$healthString, problem with ${diskID[$i]} (model:${diskModel[$i]}) status:${diskStatus[$i]} temperature:${diskTemp[$i]}";;
 		esac
-	
+
 		if [ "${diskTemp[$i]}" -gt "$warningTemperature" ] ; then
 			if [ "${diskTemp[$i]}" -gt "$criticalTemperature" ] ; then
 				diskTemp[$i]="${diskTemp[$i]} (CRITICAL)"
