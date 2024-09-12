@@ -92,6 +92,16 @@ OID_Usb2Mount="1.3.6.1.2.1.25.2.3.1.3.54"
 OID_Usb2Size="1.3.6.1.2.1.25.2.3.1.5.54"
 OID_Usb2Usage="1.3.6.1.2.1.25.2.3.1.6.54"
 
+OID_Usb3="1.3.6.1.2.1.25.2.3.1.1.55"
+OID_Usb3Mount="1.3.6.1.2.1.25.2.3.1.3.55"
+OID_Usb3Size="1.3.6.1.2.1.25.2.3.1.5.55"
+OID_Usb3Usage="1.3.6.1.2.1.25.2.3.1.6.55"
+
+OID_Usb4="1.3.6.1.2.1.25.2.3.1.1.56"
+OID_Usb4Mount="1.3.6.1.2.1.25.2.3.1.3.56"
+OID_Usb4Size="1.3.6.1.2.1.25.2.3.1.5.56"
+OID_Usb4Usage="1.3.6.1.2.1.25.2.3.1.6.56"
+
 usage()
 {
 	echo "usage: ./check_snmp_synology [OPTIONS] -u [user] -p [pass] -h [hostname]"
@@ -222,6 +232,14 @@ else
 		OID_Usb="$OID_Usb $OID_Usb2 $OID_Usb2Mount $OID_Usb2Size $OID_Usb2Usage"
 	fi
 	
+	if [[ "$usb" =~ "3" ]]; then
+			OID_Usb="$OID_Usb $OID_Usb3 $OID_Usb3Mount $OID_Usb3Size $OID_Usb3Usage"
+	fi
+	
+	if [[ "$usb" =~ "4" ]]; then
+			OID_Usb="$OID_Usb $OID_Usb3 $OID_Usb3Mount $OID_Usb3Size $OID_Usb3Usage"
+	fi
+	
 	if [ "$ups" = "yes" ] ; then
 		syno=`$SNMPGET $SNMPArgs $hostname $OID_model $OID_serialNumber $OID_DSMVersion $OID_systemStatus $OID_temperature $OID_powerStatus $OID_systemFanStatus $OID_CPUFanStatus $OID_disk $OID_RAID $OID_DSMUpgradeAvailable $OID_Usb $OID_UpsModel $OID_UpsSN $OID_UpsStatus $OID_UpsLoad $OID_UpsBatteryCharge $OID_UpsBatteryChargeWarning 2> /dev/null`
 	else
@@ -255,6 +273,7 @@ else
 	powerStatus=$(echo "$syno" | grep $OID_powerStatus | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 	systemFanStatus=$(echo "$syno" | grep $OID_systemFanStatus | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 	CPUFanStatus=$(echo "$syno" | grep $OID_CPUFanStatus | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+
 
 	#Check system status
 	if [ "$systemStatus" = "1" ] ; then
@@ -332,6 +351,34 @@ else
 				USBMount=$(echo "$syno" | grep $OID_Usb2Mount | cut -d "=" -f2 | sed -e 's/\"//g')
 				USBSize=$(echo "$syno" | grep $OID_Usb2Size | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 				USBUsage=$(echo "$syno" | grep $OID_Usb2Usage | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+				USBStatus="$USBMount $USBUsage/$USBSize"
+				healthString="$healthString, USB status: $USBStatus "
+				checkDiskSpace $USBSize $USBUsage
+			fi
+		fi
+		if [[ "$usb" =~ "3" ]]; then
+			USBStatus=$(echo "$syno" | grep $OID_Usb3 | cut -d "=" -f2)
+			if [[ "$USBStatus" =~ "No Such Instance currently exists at this OID" ]]; then
+				healthCriticalStatus=1
+				healthString="$healthString, USB status: $USBStatus "
+			else
+				USBMount=$(echo "$syno" | grep $OID_Usb3Mount | cut -d "=" -f2 | sed -e 's/\"//g')
+				USBSize=$(echo "$syno" | grep $OID_Usb3Size | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+				USBUsage=$(echo "$syno" | grep $OID_Usb3Usage | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+				USBStatus="$USBMount $USBUsage/$USBSize"
+				healthString="$healthString, USB status: $USBStatus "
+				checkDiskSpace $USBSize $USBUsage
+			fi
+		fi
+		if [[ "$usb" =~ "4" ]]; then
+			USBStatus=$(echo "$syno" | grep $OID_Usb4 | cut -d "=" -f2)
+			if [[ "$USBStatus" =~ "No Such Instance currently exists at this OID" ]]; then
+				healthCriticalStatus=1
+				healthString="$healthString, USB status: $USBStatus "
+			else
+				USBMount=$(echo "$syno" | grep $OID_Usb4Mount | cut -d "=" -f2 | sed -e 's/\"//g')
+				USBSize=$(echo "$syno" | grep $OID_Usb4Size | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
+				USBUsage=$(echo "$syno" | grep $OID_Usb4Usage | cut -d "=" -f2 | sed 's/^[ \t]*//;s/[ \t]*$//')
 				USBStatus="$USBMount $USBUsage/$USBSize"
 				healthString="$healthString, USB status: $USBStatus "
 				checkDiskSpace $USBSize $USBUsage
