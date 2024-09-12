@@ -26,7 +26,7 @@ Added checks to USB-storage mounting an disk-usage
   -w [warning %] Warning storage usage percentage (default 80) 
   -c [critical %] Critical storage usage percentage (default 95) 
 
-  -b Check USB-storage
+  -b [number of USB slot] Check USB-storage
 
   -i Ignore DSM updates 
   -U Show informations about the connected UPS (only information, no control) 
@@ -38,5 +38,6 @@ Added checks to USB-storage mounting an disk-usage
   ./check_snmp_synology -u admin -p 1234 -h nas.intranet 
   ./check_snmp_synology -u admin -p 1234 -h nas.intranet -v 
   ./check_snmp_synology -2 public -h nas.intranet 
+  ./check_snmp_synology -2 public -h nas.intranet -b 2
   ./check_snmp_synology -2 public -h nas.intranet:10161 
 ```
